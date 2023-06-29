@@ -252,9 +252,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { parseChatMessages, parseEvents, parseTicks, parsePlayerInfo } = nativeBinding
+const { parseEvents, parseTicks } = nativeBinding
 
-module.exports.parseChatMessages = parseChatMessages
 module.exports.parseEvents = parseEvents
 module.exports.parseTicks = parseTicks
-module.exports.parsePlayerInfo = parsePlayerInfo
