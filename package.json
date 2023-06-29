@@ -1,6 +1,6 @@
 {
   "name": "@laihoe/demoparser2",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
@@ -40,5 +40,6 @@
     "test": "ava",
     "universal": "napi universal",
     "version": "napi version"
-  }
+  },
+  "packageManager": "yarn@3.6.0"
 }

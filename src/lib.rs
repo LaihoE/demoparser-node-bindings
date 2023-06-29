@@ -18,13 +18,12 @@ use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::sync::Arc;
-/*
+
 #[napi]
 pub fn parse_chat_messages(path: String) -> Result<Value> {
   let file = File::open(path.clone())?;
   let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
   let arc_huf = Arc::new(create_huffman_lookup_table());
-  let mut real_name_to_og_name = AHashMap::default();
 
   let settings = ParserInputs {
     real_name_to_og_name: AHashMap::default(),
@@ -54,7 +53,40 @@ pub fn parse_chat_messages(path: String) -> Result<Value> {
   };
   Ok(s)
 }
-*/
+#[napi]
+pub fn parse_grenades(path: String) -> Result<Value> {
+  let file = File::open(path.clone())?;
+  let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
+  let arc_huf = Arc::new(create_huffman_lookup_table());
+
+  let settings = ParserInputs {
+    real_name_to_og_name: AHashMap::default(),
+    bytes: arc_mmap.clone(),
+    wanted_player_props: vec![],
+    wanted_player_props_og_names: vec![],
+    wanted_other_props: vec![],
+    wanted_other_props_og_names: vec![],
+    wanted_event: None,
+    parse_ents: true,
+    wanted_ticks: vec![],
+    parse_projectiles: true,
+    only_header: true,
+    count_props: false,
+    only_convars: false,
+    huffman_lookup_table: arc_huf.clone(),
+  };
+  let mut parser = Parser::new(settings);
+  let output = match parser.parse_demo() {
+    Ok(output) => output,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+
+  let s = match serde_json::to_value(&output.projectiles) {
+    Ok(s) => s,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+  Ok(s)
+}
 #[napi]
 pub fn parse_events(
   path: String,
@@ -118,7 +150,7 @@ pub fn parse_events(
 
 #[napi]
 pub fn parse_ticks(path: String, wanted_props: Vec<String>) -> Result<Value> {
-  let real_names = match rm_user_friendly_names(&wanted_props) {
+  let mut real_names = match rm_user_friendly_names(&wanted_props) {
     Ok(names) => names,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
@@ -153,7 +185,16 @@ pub fn parse_ticks(path: String, wanted_props: Vec<String>) -> Result<Value> {
     Ok(output) => output,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
+  real_names.push("tick".to_owned());
+  real_names.push("steamid".to_owned());
+  real_names.push("name".to_owned());
+
+  let mut prop_infos = output.prop_info.prop_infos.clone();
+  prop_infos.sort_by_key(|x| x.prop_name.clone());
+  real_names.sort();
+
   let helper = OutputSerdeHelperStruct {
+    prop_infos: prop_infos,
     inner: output.df.into(),
   };
   let s = match serde_json::to_value(&helper) {
@@ -162,54 +203,38 @@ pub fn parse_ticks(path: String, wanted_props: Vec<String>) -> Result<Value> {
   };
   Ok(s)
 }
-/*
+
 #[napi]
 pub fn parse_player_info(path: String) -> Result<Value> {
-  let bytes = fs::read(path)?;
+  let file = File::open(path.clone())?;
+  let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
+  let arc_huf = Arc::new(create_huffman_lookup_table());
 
   let settings = ParserInputs {
-    bytes: &bytes,
+    real_name_to_og_name: AHashMap::default(),
+    bytes: arc_mmap.clone(),
     wanted_player_props: vec![],
     wanted_player_props_og_names: vec![],
     wanted_other_props: vec![],
     wanted_other_props_og_names: vec![],
-    wanted_event: Some("-".to_owned()),
-    parse_ents: false,
+    wanted_event: None,
+    parse_ents: true,
     wanted_ticks: vec![],
     parse_projectiles: false,
     only_header: true,
     count_props: false,
     only_convars: false,
+    huffman_lookup_table: arc_huf.clone(),
+  };
+  let mut parser = Parser::new(settings);
+  let output = match parser.parse_demo() {
+    Ok(output) => output,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
 
-  let mut parser = match Parser::new(settings) {
-    Ok(parser) => parser,
-    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
-  };
-  match parser.start() {
-    Ok(_) => {}
-    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
-  };
-  let mut messages = vec![];
-  for i in 0..parser.skins.ent_idx.len() {
-    let mut hm: HashMap<String, Option<String>> = HashMap::default();
-    let sid = match parser.player_end_data.steamid[i] {
-      Some(sid) => Some(sid.to_string()),
-      None => None,
-    };
-    hm.insert("steamid".to_string(), sid);
-    let tm = match parser.player_end_data.team_number[i] {
-      Some(t) => Some(t.to_string()),
-      None => None,
-    };
-    hm.insert("team_number".to_string(), tm);
-    hm.insert("name".to_string(), parser.player_end_data.name[i].clone());
-    messages.push(hm)
-  }
-  let s = match serde_json::to_value(&messages) {
+  let s = match serde_json::to_value(&output.player_md) {
     Ok(s) => s,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
   Ok(s)
 }
-*/
