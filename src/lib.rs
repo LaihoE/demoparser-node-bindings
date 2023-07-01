@@ -88,6 +88,41 @@ pub fn parse_grenades(path: String) -> Result<Value> {
   Ok(s)
 }
 #[napi]
+pub fn parse_header(path: String) -> Result<Value> {
+  let file = File::open(path.clone())?;
+  let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
+  let arc_huf = Arc::new(create_huffman_lookup_table());
+
+  let settings = ParserInputs {
+    real_name_to_og_name: AHashMap::default(),
+    bytes: arc_mmap.clone(),
+    wanted_player_props: vec![],
+    wanted_player_props_og_names: vec![],
+    wanted_other_props: vec![],
+    wanted_other_props_og_names: vec![],
+    wanted_event: None,
+    parse_ents: false,
+    wanted_ticks: vec![],
+    parse_projectiles: true,
+    only_header: true,
+    count_props: false,
+    only_convars: false,
+    huffman_lookup_table: arc_huf.clone(),
+  };
+  let mut parser = Parser::new(settings);
+  let output = match parser.parse_demo() {
+    Ok(output) => output,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+
+  let s = match serde_json::to_value(&output.projectiles) {
+    Ok(s) => s,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+  Ok(s)
+}
+
+#[napi]
 pub fn parse_events(
   path: String,
   event_name: String,
