@@ -1,4 +1,4 @@
-var {parseEvents, parseTicks, parsePlayerInfo, parseGrenades} = require('./index');
+var {parseEvents, parseTicks, parsePlayerInfo, parseGrenades, listGameEvents} = require('./index');
 const fs = require('fs');
 const path = require('path');
 
@@ -9,7 +9,7 @@ try {
     // let x = parseEvents(filePath, "player_death")
     // let y = parsePlayerInfo(filePath)
     // let y = parseTicks(filePath, ["X"])
-    // let y = parseGrenades(filePath)
+    let y = listGameEvents(filePath)
     console.log(y)
   });
 } catch (err) {
