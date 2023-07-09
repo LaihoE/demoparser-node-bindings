@@ -219,7 +219,11 @@ pub fn parse_events(
 }
 
 #[napi]
-pub fn parse_ticks(path: String, wanted_props: Vec<String>) -> Result<Value> {
+pub fn parse_ticks(
+  path: String,
+  wanted_props: Vec<String>,
+  wanted_ticks: Vec<i32>,
+) -> Result<Value> {
   let mut real_names = match rm_user_friendly_names(&wanted_props) {
     Ok(names) => names,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
@@ -243,7 +247,7 @@ pub fn parse_ticks(path: String, wanted_props: Vec<String>) -> Result<Value> {
     wanted_other_props_og_names: vec![],
     wanted_event: None,
     parse_ents: true,
-    wanted_ticks: vec![],
+    wanted_ticks: wanted_ticks,
     parse_projectiles: false,
     only_header: true,
     count_props: false,
