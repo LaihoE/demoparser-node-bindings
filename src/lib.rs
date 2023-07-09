@@ -222,7 +222,7 @@ pub fn parse_events(
 pub fn parse_ticks(
   path: String,
   wanted_props: Vec<String>,
-  wanted_ticks: Vec<i32>,
+  wanted_ticks: Option<Vec<i32>>,
 ) -> Result<Value> {
   let mut real_names = match rm_user_friendly_names(&wanted_props) {
     Ok(names) => names,
@@ -237,6 +237,10 @@ pub fn parse_ticks(
   for (real_name, user_friendly_name) in real_names.iter().zip(&wanted_props) {
     real_name_to_og_name.insert(real_name.clone(), user_friendly_name.clone());
   }
+  let wanted_ticks = match wanted_ticks {
+    Some(t) => t,
+    None => vec![],
+  };
 
   let settings = ParserInputs {
     real_name_to_og_name: real_name_to_og_name,
