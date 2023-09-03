@@ -3,7 +3,6 @@
 #[macro_use]
 extern crate napi_derive;
 use ahash::AHashMap;
-use memmap2::Mmap;
 use memmap2::MmapOptions;
 use napi::bindgen_prelude::*;
 use napi::Error;
@@ -11,28 +10,26 @@ use parser::parser_settings::rm_user_friendly_names;
 use parser::parser_settings::Parser;
 use parser::parser_settings::ParserInputs;
 use parser::parser_thread_settings::create_huffman_lookup_table;
-use parser::read_bits::DemoParserError;
+use parser::variants::BytesVariant;
 use parser::variants::OutputSerdeHelperStruct;
 use serde_json::Value;
-use std::collections::HashMap;
-use std::fs;
 use std::fs::File;
 use std::sync::Arc;
 
 #[napi]
 pub fn parse_chat_messages(path: String) -> Result<Value> {
   let file = File::open(path.clone())?;
-  let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
+  let mmap = unsafe { MmapOptions::new().map(&file)? };
   let arc_huf = Arc::new(create_huffman_lookup_table());
 
   let settings = ParserInputs {
     real_name_to_og_name: AHashMap::default(),
-    bytes: arc_mmap.clone(),
+    bytes: Arc::new(BytesVariant::Mmap(mmap)),
     wanted_player_props: vec![],
     wanted_player_props_og_names: vec![],
     wanted_other_props: vec![],
     wanted_other_props_og_names: vec![],
-    wanted_event: None,
+    wanted_events: vec![],
     parse_ents: true,
     wanted_ticks: vec![],
     parse_projectiles: false,
@@ -56,17 +53,17 @@ pub fn parse_chat_messages(path: String) -> Result<Value> {
 #[napi]
 pub fn list_game_events(path: String) -> Result<Value> {
   let file = File::open(path.clone())?;
-  let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
+  let mmap = unsafe { MmapOptions::new().map(&file)? };
   let arc_huf = Arc::new(create_huffman_lookup_table());
 
   let settings = ParserInputs {
     real_name_to_og_name: AHashMap::default(),
-    bytes: arc_mmap.clone(),
+    bytes: Arc::new(BytesVariant::Mmap(mmap)),
     wanted_player_props: vec![],
     wanted_player_props_og_names: vec![],
     wanted_other_props: vec![],
     wanted_other_props_og_names: vec![],
-    wanted_event: Some("".to_string()),
+    wanted_events: vec!["all".to_string()],
     parse_ents: false,
     wanted_ticks: vec![],
     parse_projectiles: false,
@@ -91,17 +88,17 @@ pub fn list_game_events(path: String) -> Result<Value> {
 #[napi]
 pub fn parse_grenades(path: String) -> Result<Value> {
   let file = File::open(path.clone())?;
-  let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
+  let mmap = unsafe { MmapOptions::new().map(&file)? };
   let arc_huf = Arc::new(create_huffman_lookup_table());
 
   let settings = ParserInputs {
     real_name_to_og_name: AHashMap::default(),
-    bytes: arc_mmap.clone(),
+    bytes: Arc::new(BytesVariant::Mmap(mmap)),
     wanted_player_props: vec![],
     wanted_player_props_og_names: vec![],
     wanted_other_props: vec![],
     wanted_other_props_og_names: vec![],
-    wanted_event: None,
+    wanted_events: vec![],
     parse_ents: true,
     wanted_ticks: vec![],
     parse_projectiles: true,
@@ -125,17 +122,17 @@ pub fn parse_grenades(path: String) -> Result<Value> {
 #[napi]
 pub fn parse_header(path: String) -> Result<Value> {
   let file = File::open(path.clone())?;
-  let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
+  let mmap = unsafe { MmapOptions::new().map(&file)? };
   let arc_huf = Arc::new(create_huffman_lookup_table());
 
   let settings = ParserInputs {
     real_name_to_og_name: AHashMap::default(),
-    bytes: arc_mmap.clone(),
+    bytes: Arc::new(BytesVariant::Mmap(mmap)),
     wanted_player_props: vec![],
     wanted_player_props_og_names: vec![],
     wanted_other_props: vec![],
     wanted_other_props_og_names: vec![],
-    wanted_event: None,
+    wanted_events: vec![],
     parse_ents: false,
     wanted_ticks: vec![],
     parse_projectiles: true,
@@ -158,7 +155,7 @@ pub fn parse_header(path: String) -> Result<Value> {
 }
 
 #[napi]
-pub fn parse_events(
+pub fn parse_event(
   path: String,
   event_name: String,
   extra_player: Option<Vec<String>>,
@@ -187,17 +184,81 @@ pub fn parse_events(
   }
 
   let file = File::open(path.clone())?;
-  let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
+  let mmap = unsafe { MmapOptions::new().map(&file)? };
   let arc_huf = Arc::new(create_huffman_lookup_table());
 
   let settings = ParserInputs {
     real_name_to_og_name: real_name_to_og_name,
-    bytes: arc_mmap.clone(),
+    bytes: Arc::new(BytesVariant::Mmap(mmap)),
     wanted_player_props: real_names_player.clone(),
     wanted_player_props_og_names: player_props.clone(),
     wanted_other_props: vec![],
     wanted_other_props_og_names: vec![],
-    wanted_event: Some(event_name.clone()),
+    wanted_events: vec![event_name],
+    parse_ents: true,
+    wanted_ticks: vec![],
+    parse_projectiles: false,
+    only_header: true,
+    count_props: false,
+    only_convars: false,
+    huffman_lookup_table: arc_huf.clone(),
+  };
+  let mut parser = Parser::new(settings);
+  let output = match parser.parse_demo() {
+    Ok(output) => output,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+  let s = match serde_json::to_value(&output.game_events) {
+    Ok(s) => s,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+  Ok(s)
+}
+#[napi]
+pub fn parse_events(
+  path: String,
+  event_names: Option<Vec<String>>,
+  extra_player: Option<Vec<String>>,
+  extra_other: Option<Vec<String>>,
+) -> Result<Value> {
+  let event_names = match event_names {
+    None => return Err(Error::new(Status::InvalidArg, "No events provided!")),
+    Some(v) => v,
+  };
+  let player_props = match extra_player {
+    Some(p) => p,
+    None => vec![],
+  };
+  let other_props = match extra_other {
+    Some(p) => p,
+    None => vec![],
+  };
+  let real_names_player = match rm_user_friendly_names(&player_props) {
+    Ok(names) => names,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+  let real_names_other = match rm_user_friendly_names(&player_props) {
+    Ok(names) => names,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+
+  let mut real_name_to_og_name = AHashMap::default();
+  for (real_name, user_friendly_name) in real_names_player.iter().zip(&player_props) {
+    real_name_to_og_name.insert(real_name.clone(), user_friendly_name.clone());
+  }
+
+  let file = File::open(path.clone())?;
+  let mmap = unsafe { MmapOptions::new().map(&file)? };
+  let arc_huf = Arc::new(create_huffman_lookup_table());
+
+  let settings = ParserInputs {
+    real_name_to_og_name: real_name_to_og_name,
+    bytes: Arc::new(BytesVariant::Mmap(mmap)),
+    wanted_player_props: real_names_player.clone(),
+    wanted_player_props_og_names: player_props.clone(),
+    wanted_other_props: vec![],
+    wanted_other_props_og_names: vec![],
+    wanted_events: event_names,
     parse_ents: true,
     wanted_ticks: vec![],
     parse_projectiles: false,
@@ -230,7 +291,7 @@ pub fn parse_ticks(
   };
 
   let file = File::open(path.clone())?;
-  let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
+  let mmap = unsafe { MmapOptions::new().map(&file)? };
   let arc_huf = Arc::new(create_huffman_lookup_table());
   let mut real_name_to_og_name = AHashMap::default();
 
@@ -244,12 +305,12 @@ pub fn parse_ticks(
 
   let settings = ParserInputs {
     real_name_to_og_name: real_name_to_og_name,
-    bytes: arc_mmap.clone(),
+    bytes: Arc::new(BytesVariant::Mmap(mmap)),
     wanted_player_props: real_names.clone(),
     wanted_player_props_og_names: wanted_props.clone(),
     wanted_other_props: vec![],
     wanted_other_props_og_names: vec![],
-    wanted_event: None,
+    wanted_events: vec![],
     parse_ents: true,
     wanted_ticks: wanted_ticks,
     parse_projectiles: false,
@@ -285,17 +346,17 @@ pub fn parse_ticks(
 #[napi]
 pub fn parse_player_info(path: String) -> Result<Value> {
   let file = File::open(path.clone())?;
-  let arc_mmap = Arc::new(unsafe { MmapOptions::new().map(&file)? });
+  let mmap = unsafe { MmapOptions::new().map(&file)? };
   let arc_huf = Arc::new(create_huffman_lookup_table());
 
   let settings = ParserInputs {
     real_name_to_og_name: AHashMap::default(),
-    bytes: arc_mmap.clone(),
+    bytes: Arc::new(BytesVariant::Mmap(mmap)),
     wanted_player_props: vec![],
     wanted_player_props_og_names: vec![],
     wanted_other_props: vec![],
     wanted_other_props_og_names: vec![],
-    wanted_event: None,
+    wanted_events: vec![],
     parse_ents: true,
     wanted_ticks: vec![],
     parse_projectiles: false,
