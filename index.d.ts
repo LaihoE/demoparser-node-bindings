@@ -9,5 +9,5 @@ export function parseGrenades(path: string): any
 export function parseHeader(path: string): any
 export function parseEvent(path: string, eventName: string, extraPlayer?: Array<string> | undefined | null, extraOther?: Array<string> | undefined | null): any
 export function parseEvents(path: string, eventNames?: Array<string> | undefined | null, extraPlayer?: Array<string> | undefined | null, extraOther?: Array<string> | undefined | null): any
-export function parseTicks(path: string, wantedProps: Array<string>, wantedTicks?: Array<number> | undefined | null): any
+export function parseTicks(path: string, wantedProps: Array<string>, wantedTicks?: Array<number> | undefined | null, structOfArrays?: boolean | undefined | null): any
 export function parsePlayerInfo(path: string): any

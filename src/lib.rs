@@ -10,6 +10,7 @@ use parser::parser_settings::rm_user_friendly_names;
 use parser::parser_settings::Parser;
 use parser::parser_settings::ParserInputs;
 use parser::parser_thread_settings::create_huffman_lookup_table;
+use parser::variants::soa_to_aos;
 use parser::variants::BytesVariant;
 use parser::variants::OutputSerdeHelperStruct;
 use serde_json::Value;
@@ -287,6 +288,7 @@ pub fn parse_ticks(
   path: String,
   wanted_props: Vec<String>,
   wanted_ticks: Option<Vec<i32>>,
+  struct_of_arrays: Option<bool>,
 ) -> Result<Value> {
   let mut real_names = match rm_user_friendly_names(&wanted_props) {
     Ok(names) => names,
@@ -317,7 +319,7 @@ pub fn parse_ticks(
     parse_ents: true,
     wanted_ticks: wanted_ticks,
     parse_projectiles: false,
-    only_header: true,
+    only_header: false,
     count_props: false,
     only_convars: false,
     huffman_lookup_table: arc_huf.clone(),
@@ -339,11 +341,26 @@ pub fn parse_ticks(
     prop_infos: prop_infos,
     inner: output.df.into(),
   };
-  let s = match serde_json::to_value(&helper) {
-    Ok(s) => s,
-    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+
+  let is_soa = match struct_of_arrays {
+    Some(true) => true,
+    _ => false,
   };
-  Ok(s)
+
+  if is_soa {
+    let s = match serde_json::to_value(&helper) {
+      Ok(s) => s,
+      Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+    };
+    return Ok(s);
+  } else {
+    let result = soa_to_aos(helper);
+    let s = match serde_json::to_value(&result) {
+      Ok(s) => s,
+      Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+    };
+    Ok(s)
+  }
 }
 
 #[napi]
@@ -373,7 +390,6 @@ pub fn parse_player_info(path: String) -> Result<Value> {
     Ok(output) => output,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
-
   let s = match serde_json::to_value(&output.player_md) {
     Ok(s) => s,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
