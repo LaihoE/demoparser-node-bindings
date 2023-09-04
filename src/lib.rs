@@ -13,6 +13,7 @@ use parser::parser_thread_settings::create_huffman_lookup_table;
 use parser::variants::BytesVariant;
 use parser::variants::OutputSerdeHelperStruct;
 use serde_json::Value;
+use std::collections::HashMap;
 use std::fs::File;
 use std::sync::Arc;
 
@@ -142,12 +143,14 @@ pub fn parse_header(path: String) -> Result<Value> {
     huffman_lookup_table: arc_huf.clone(),
   };
   let mut parser = Parser::new(settings);
-  let output = match parser.parse_demo() {
+  let _output = match parser.parse_demo() {
     Ok(output) => output,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
+  let mut hm: HashMap<String, String> = HashMap::default();
+  hm.extend(parser.header);
 
-  let s = match serde_json::to_value(&output.projectiles) {
+  let s = match serde_json::to_value(&hm) {
     Ok(s) => s,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
