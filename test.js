@@ -8,16 +8,18 @@ try {
   files.forEach(file => {
     const filePath = path.join("/home/laiho/Documents/demos/cs2/test3/", file);
     // let y = parseEvents(filePath, ["player_death", "bomb_planted"])
-    // let y = parseEvent(filePath, "bomb_planted", ["last_place_name"])
+    let y = parseEvent(filePath, "other_death")
+    // let y = parseEvents(filePath, ["bomb_planted"])
+    // let y = 
     // let y = parsePlayerInfo(filePath)
     // let y = parseTicks(filePath, ["X"], [10000, 10001, 10002])
     // let y = listGameEvents(filePath)
     // let y = parseHeader(filePath)
     // let y = parseGrenades(filePath)
     // console.log(y[0])
-    let d = parseTicks(filePath, ["active_weapon_name", "X", "Y"], [], false)
-    // let x = d.filter(x => x.tick == 316)
-    console.log(d)
+    // let ticks = parseTicks(filePath, ["active_weapon_name"], [10000, 10001], true)
+    // let uniqueItems = [...new Set(ticks.active_weapon_name)]
+    console.log(y)
   });
 } catch (err) {
   console.error(err);

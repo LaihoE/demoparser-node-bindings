@@ -162,14 +162,14 @@ pub fn parse_header(path: String) -> Result<Value> {
 pub fn parse_event(
   path: String,
   event_name: String,
-  extra_player: Option<Vec<String>>,
-  extra_other: Option<Vec<String>>,
+  player_extra: Option<Vec<String>>,
+  other_extra: Option<Vec<String>>,
 ) -> Result<Value> {
-  let player_props = match extra_player {
+  let player_props = match player_extra {
     Some(p) => p,
     None => vec![],
   };
-  let other_props = match extra_other {
+  let other_props = match other_extra {
     Some(p) => p,
     None => vec![],
   };
@@ -222,18 +222,18 @@ pub fn parse_event(
 pub fn parse_events(
   path: String,
   event_names: Option<Vec<String>>,
-  extra_player: Option<Vec<String>>,
-  extra_other: Option<Vec<String>>,
+  player_extra: Option<Vec<String>>,
+  other_extra: Option<Vec<String>>,
 ) -> Result<Value> {
   let event_names = match event_names {
     None => return Err(Error::new(Status::InvalidArg, "No events provided!")),
     Some(v) => v,
   };
-  let player_props = match extra_player {
+  let player_props = match player_extra {
     Some(p) => p,
     None => vec![],
   };
-  let other_props = match extra_other {
+  let other_props = match other_extra {
     Some(p) => p,
     None => vec![],
   };
