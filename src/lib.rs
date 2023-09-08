@@ -177,13 +177,16 @@ pub fn parse_event(
     Ok(names) => names,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
-  let real_names_other = match rm_user_friendly_names(&player_props) {
+  let real_other_props = match rm_user_friendly_names(&other_props) {
     Ok(names) => names,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
 
   let mut real_name_to_og_name = AHashMap::default();
   for (real_name, user_friendly_name) in real_names_player.iter().zip(&player_props) {
+    real_name_to_og_name.insert(real_name.clone(), user_friendly_name.clone());
+  }
+  for (real_name, user_friendly_name) in real_other_props.iter().zip(&other_props) {
     real_name_to_og_name.insert(real_name.clone(), user_friendly_name.clone());
   }
 
@@ -195,8 +198,8 @@ pub fn parse_event(
     real_name_to_og_name: real_name_to_og_name,
     bytes: Arc::new(BytesVariant::Mmap(mmap)),
     wanted_player_props: real_names_player.clone(),
-    wanted_player_props_og_names: player_props.clone(),
-    wanted_other_props: vec![],
+    wanted_player_props_og_names: vec![],
+    wanted_other_props: real_other_props,
     wanted_other_props_og_names: vec![],
     wanted_events: vec![event_name],
     parse_ents: true,
@@ -241,13 +244,16 @@ pub fn parse_events(
     Ok(names) => names,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
-  let real_names_other = match rm_user_friendly_names(&player_props) {
+  let real_other_props = match rm_user_friendly_names(&other_props) {
     Ok(names) => names,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
 
   let mut real_name_to_og_name = AHashMap::default();
   for (real_name, user_friendly_name) in real_names_player.iter().zip(&player_props) {
+    real_name_to_og_name.insert(real_name.clone(), user_friendly_name.clone());
+  }
+  for (real_name, user_friendly_name) in real_other_props.iter().zip(&other_props) {
     real_name_to_og_name.insert(real_name.clone(), user_friendly_name.clone());
   }
 
@@ -259,8 +265,8 @@ pub fn parse_events(
     real_name_to_og_name: real_name_to_og_name,
     bytes: Arc::new(BytesVariant::Mmap(mmap)),
     wanted_player_props: real_names_player.clone(),
-    wanted_player_props_og_names: player_props.clone(),
-    wanted_other_props: vec![],
+    wanted_player_props_og_names: vec![],
+    wanted_other_props: real_other_props.clone(),
     wanted_other_props_og_names: vec![],
     wanted_events: event_names,
     parse_ents: true,

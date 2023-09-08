@@ -8,11 +8,11 @@ try {
   files.forEach(file => {
     const filePath = path.join("/home/laiho/Documents/demos/cs2/test3/", file);
     // let y = parseEvents(filePath, ["player_death", "bomb_planted"])
-    let y = parseEvent(filePath, "player_blind")
-    // let y = parseEvents(filePath, ["bomb_planted"])
-    // let y = 
+    let y = parseEvent(filePath, "player_blind", ["X", "Y"], ["total_rounds_played"])
+    // let y = parseEvents(filePath, ["bomb_planted"], ["X", "Y"], ["total_rounds_played"])
+    // let y = parseHeader(filePath)
     // let y = parsePlayerInfo(filePath)
-    // let y = parseTicks(filePath, ["X"], [10000, 10001, 10002])
+    // let y = parseTicks(filePath, ["damage_total"], [10000, 10001, 10002])
     // let y = listGameEvents(filePath)
     // let y = parseHeader(filePath)
     // let y = parseGrenades(filePath)
