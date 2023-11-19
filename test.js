@@ -7,19 +7,8 @@ try {
   const files = fs.readdirSync("/home/laiho/Documents/demos/cs2/test3/");
   files.forEach(file => {
     const filePath = path.join("/home/laiho/Documents/demos/cs2/test3/", file);
-    // let y = parseEvents(filePath, ["player_death", "bomb_planted"])
     let y = parseEvent(filePath, "player_death", ["inventory"], [])
-    // let y = parseEvents(filePath, ["bomb_planted"], ["X", "Y"], ["total_rounds_played"])
-    // let y = parseHeader(filePath)
-    // let y = parsePlayerInfo(filePath)
-    // let y = parseTicks(filePath, ["damage_total"], [10000, 10001, 10002])
-    // let y = listGameEvents(filePath)
-    // let y = parseHeader(filePath)
-    // let y = parseGrenades(filePath)
     console.log(y)
-    // let ticks = parseTicks(filePath, ["active_weapon_name"], [10000, 10001], true)
-    // let uniqueItems = [...new Set(ticks.active_weapon_name)]
-
   });
 } catch (err) {
   console.error(err);
