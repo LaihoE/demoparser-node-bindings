@@ -1,6 +1,6 @@
 {
   "name": "@laihoe/demoparser2-linux-arm64-gnu",
-  "version": "0.17.1",
+  "version": "0.17.2",
   "os": [
     "linux"
   ],
