@@ -14,7 +14,7 @@ use parser::parser_thread_settings::create_huffman_lookup_table;
 use parser::variants::soa_to_aos;
 use parser::variants::BytesVariant;
 use parser::variants::OutputSerdeHelperStruct;
-use parser::voice_data::convert_voice_data_to_wav;
+//use parser::voice_data::convert_voice_data_to_wav;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs::File;
@@ -63,6 +63,7 @@ pub fn parse_chat_messages(path_or_buf: Either<String, Buffer>) -> napi::Result<
   Ok(s)
 }
 */
+/*
 #[napi]
 pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<String, Vec<u8>>> {
   let bytes = resolve_byte_type(path_or_buf).unwrap();
@@ -95,6 +96,7 @@ pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<
   }
   Ok(out_hm)
 }
+*/
 #[napi]
 pub fn list_game_events(path_or_buf: Either<String, Buffer>) -> napi::Result<Value> {
   let bytes = resolve_byte_type(path_or_buf)?;
