@@ -266,12 +266,10 @@ pub fn parse_ticks(
   for (real_name, user_friendly_name) in real_names.iter().zip(&wanted_props) {
     real_name_to_og_name.insert(real_name.clone(), user_friendly_name.clone());
   }
-
   let wanted_ticks = match wanted_ticks {
     Some(t) => t,
     None => vec![],
   };
-
   let settings = ParserInputs {
     real_name_to_og_name: real_name_to_og_name,
     wanted_players: wanted_players_u64,
