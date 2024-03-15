@@ -252,8 +252,9 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { listGameEvents, parseGrenades, parseHeader, parseEvent, parseEvents, parseTicks, parsePlayerInfo } = nativeBinding
+const { parseVoice, listGameEvents, parseGrenades, parseHeader, parseEvent, parseEvents, parseTicks, parsePlayerInfo, parsePlayerSkins } = nativeBinding
 
+module.exports.parseVoice = parseVoice
 module.exports.listGameEvents = listGameEvents
 module.exports.parseGrenades = parseGrenades
 module.exports.parseHeader = parseHeader
@@ -261,3 +262,4 @@ module.exports.parseEvent = parseEvent
 module.exports.parseEvents = parseEvents
 module.exports.parseTicks = parseTicks
 module.exports.parsePlayerInfo = parsePlayerInfo
+module.exports.parsePlayerSkins = parsePlayerSkins
