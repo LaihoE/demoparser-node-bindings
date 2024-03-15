@@ -26,9 +26,9 @@ jobs:
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
-              sudo apt-get update
-              sudo apt-get install clang
-              sudo apt-get install gcc
+              apt-get update
+              apt-get install clang
+              apt-get install gcc
               set -e && yarn build && strip *.node
 
     name: stable - ${{ matrix.settings.target }} - node@18
