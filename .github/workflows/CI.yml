@@ -18,6 +18,9 @@ env:
   pull_request: null
 jobs:
   build:
+    env:
+      LIBOPUS_LIB_DIR: /usr/lib
+      OPUS_LIB_DIR: /usr/lib
     strategy:
       fail-fast: false
       matrix:
@@ -41,8 +44,6 @@ jobs:
               apk info -L opus
               apk add clang gcc
               set -e && yarn build && strip *.node
-    env:
-      LIBOPUS_LIB_DIR: /usr/lib
 
 
     name: stable - ${{ matrix.settings.target }} - node@18
