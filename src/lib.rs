@@ -33,7 +33,7 @@ fn parse_demo(bytes: BytesVariant, parser: &mut Parser) -> Result<DemoOutput, Er
   }
 }
 #[napi]
-pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<String, Vec<u8>>> {
+pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<String, Buffer>> {
   let bytes = resolve_byte_type(path_or_buf).unwrap();
   let settings = ParserInputs {
     wanted_players: vec![],
@@ -57,7 +57,7 @@ pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<
   };
   let mut out_hm = HashMap::default();
   for (steamid, bytes) in out {
-    out_hm.insert(steamid, bytes);
+    out_hm.insert(steamid, bytes.into());
   }
   Ok(out_hm)
 }
