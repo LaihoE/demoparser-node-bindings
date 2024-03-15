@@ -39,6 +39,7 @@ jobs:
               else
                   echo "gcc is not installed."
               fi
+              export LIBOPUS_LIB_DIR=/usr/lib
               apk update
               apk add opus
               apk info -L opus
