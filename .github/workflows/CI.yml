@@ -38,6 +38,7 @@ jobs:
               fi
               apk update
               apk add -y libopus-dev
+              apk info -L libopus-dev
               apk add clang gcc
               set -e && yarn build && strip *.node
 
