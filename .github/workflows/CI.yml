@@ -28,6 +28,7 @@ jobs:
             build: |-
               sudo apt-get update
               sudo apt-get install clang
+              sudo apt-get install gcc
               set -e && yarn build && strip *.node
 
     name: stable - ${{ matrix.settings.target }} - node@18
