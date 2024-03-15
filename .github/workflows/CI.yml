@@ -41,6 +41,9 @@ jobs:
               apk info -L opus
               apk add clang gcc
               set -e && yarn build && strip *.node
+    env:
+      LIBOPUS_LIB_DIR: /usr/lib
+
 
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
