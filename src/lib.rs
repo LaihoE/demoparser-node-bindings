@@ -14,6 +14,7 @@ use parser::second_pass::parser_settings::create_huffman_lookup_table;
 use parser::second_pass::variants::soa_to_aos;
 use parser::second_pass::variants::BytesVariant;
 use parser::second_pass::variants::OutputSerdeHelperStruct;
+use parser::second_pass::voice_data::convert_voice_data_to_wav;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs::File;
@@ -30,6 +31,35 @@ fn parse_demo(bytes: BytesVariant, parser: &mut Parser) -> Result<DemoOutput, Er
       Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
     },
   }
+}
+#[napi]
+pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<String, Vec<u8>>> {
+  let bytes = resolve_byte_type(path_or_buf).unwrap();
+  let settings = ParserInputs {
+    wanted_players: vec![],
+    wanted_player_props: vec![],
+    wanted_other_props: vec![],
+    wanted_events: vec![],
+    wanted_ticks: vec![],
+    real_name_to_og_name: AHashMap::default(),
+    parse_ents: false,
+    parse_projectiles: false,
+    only_header: false,
+    count_props: false,
+    only_convars: false,
+    huffman_lookup_table: &vec![],
+  };
+  let mut parser = Parser::new(settings, false);
+  let output = parse_demo(bytes, &mut parser)?;
+  let out = match convert_voice_data_to_wav(output.voice_data) {
+    Ok(out) => out,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+  let mut out_hm = HashMap::default();
+  for (steamid, bytes) in out {
+    out_hm.insert(steamid, bytes);
+  }
+  Ok(out_hm)
 }
 
 #[napi]
@@ -266,10 +296,12 @@ pub fn parse_ticks(
   for (real_name, user_friendly_name) in real_names.iter().zip(&wanted_props) {
     real_name_to_og_name.insert(real_name.clone(), user_friendly_name.clone());
   }
+
   let wanted_ticks = match wanted_ticks {
     Some(t) => t,
     None => vec![],
   };
+
   let settings = ParserInputs {
     real_name_to_og_name: real_name_to_og_name,
     wanted_players: wanted_players_u64,
@@ -342,6 +374,34 @@ pub fn parse_player_info(path_or_buf: Either<String, Buffer>) -> napi::Result<Va
   let mut parser = Parser::new(settings, false);
   let output = parse_demo(bytes, &mut parser)?;
   let s = match serde_json::to_value(&output.player_md) {
+    Ok(s) => s,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+  Ok(s)
+}
+
+#[napi]
+pub fn parse_player_skins(path_or_buf: Either<String, Buffer>) -> napi::Result<Value> {
+  let bytes = resolve_byte_type(path_or_buf)?;
+  let huf = create_huffman_lookup_table();
+
+  let settings = ParserInputs {
+    wanted_players: vec![],
+    real_name_to_og_name: AHashMap::default(),
+    wanted_player_props: vec![],
+    wanted_other_props: vec![],
+    wanted_events: vec![],
+    parse_ents: true,
+    wanted_ticks: vec![],
+    parse_projectiles: false,
+    only_header: true,
+    count_props: false,
+    only_convars: false,
+    huffman_lookup_table: &huf,
+  };
+  let mut parser = Parser::new(settings, false);
+  let output = parse_demo(bytes, &mut parser)?;
+  let s = match serde_json::to_value(&output.skins) {
     Ok(s) => s,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
