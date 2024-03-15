@@ -22,16 +22,13 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-
           - host: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
+            target: x86_64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
               sudo apt-get update
               sudo apt-get install clang
-              set -e &&
-              yarn build --target x86_64-unknown-linux-gnu &&
-              strip *.node
+              set -e && yarn build && strip *.node
 
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
