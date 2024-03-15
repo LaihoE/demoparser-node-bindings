@@ -37,6 +37,7 @@ jobs:
                   echo "gcc is not installed."
               fi
               apk update
+              apk add -y libopus-dev
               apk add clang gcc
               set -e && yarn build && strip *.node
 
