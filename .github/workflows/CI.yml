@@ -26,6 +26,16 @@ jobs:
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
+              if apk info clang > /dev/null 2>&1; then
+                  echo "clang is installed."
+              else
+                  echo "clang is not installed."
+              fi
+              if apk info gcc > /dev/null 2>&1; then
+                  echo "gcc is installed."
+              else
+                  echo "gcc is not installed."
+              fi
               apk update
               apk add clang gcc
               set -e && yarn build && strip *.node
