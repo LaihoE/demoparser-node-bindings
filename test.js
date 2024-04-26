@@ -1,5 +1,5 @@
 
-var {parseEvent, parseEvents,parseTicks, parsePlayerInfo, parseGrenades, listGameEvents, parseHeader} = require('./index');
+var {parseEvent, parseEvents,parseTicks, parsePlayerInfo, parseGrenades, listGameEvents, parseHeader, parseVoice} = require('./index');
 const fs = require('fs');
 const path = require('path');
 
@@ -8,7 +8,8 @@ try {
   files.forEach(file => {
     const filePath = path.join("/home/laiho/Documents/demos/cs2/test3/", file);
     let y = parseEvent(filePath, "player_death", ["inventory"], [])
-    console.log(y)
+    let x = parseVoice(filePath, "player_death", ["inventory"], [])
+    console.log(x)
   });
 } catch (err) {
   console.error(err);
