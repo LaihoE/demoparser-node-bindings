@@ -51,6 +51,7 @@ pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<
     count_props: false,
     only_convars: false,
     huffman_lookup_table: &vec![],
+    order_by_steamid: false,
   };
   let mut parser = Parser::new(settings, false);
   let output = parse_demo(bytes, &mut parser)?;
