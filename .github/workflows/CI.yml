@@ -73,7 +73,7 @@ jobs:
           - host: ubuntu-latest
             target: armv7-linux-androideabi
             build: |
-              yarn build --target armv7-linux-androideabi
+              yarn build --cargo-flags="--no-default-features" --target armv7-linux-androideabi
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
@@ -81,7 +81,7 @@ jobs:
             build: |-
               set -e &&
               rustup target add aarch64-unknown-linux-musl &&
-              yarn build --target aarch64-unknown-linux-musl &&
+              yarn build --cargo-flags="--no-default-features" --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
           - host: windows-latest
             target: aarch64-pc-windows-msvc
