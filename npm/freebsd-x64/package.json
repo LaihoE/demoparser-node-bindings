@@ -1,6 +1,6 @@
 {
   "name": "@laihoe/demoparser2-freebsd-x64",
-  "version": "0.26.1",
+  "version": "0.26.2",
   "os": [
     "freebsd"
   ],
