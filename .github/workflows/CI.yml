@@ -38,9 +38,8 @@ jobs:
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
-              sudo apt-get update
-              sudo apt-get install -y protobuf-compiler
               set -e &&
+              yarn add protocol-buffers
               yarn build --target x86_64-unknown-linux-gnu &&
               strip *.node
           - host: ubuntu-latest
@@ -50,16 +49,16 @@ jobs:
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
-              sudo apt-get update
-              sudo apt-get install -y protobuf-compiler
+              yarn add protocol-buffers
               yarn build --target aarch64-apple-darwin
               strip -x *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            build: |-
+            setup: |
               sudo apt-get update
               sudo apt-get install -y protobuf-compiler
+            build: |-
               set -e &&
               yarn build --cargo-flags="--no-default-features" --target aarch64-unknown-linux-gnu &&
               aarch64-unknown-linux-gnu-strip *.node
@@ -68,6 +67,7 @@ jobs:
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-arm-linux-gnueabihf -y
+              sudo apt-get install -y protobuf-compiler
             build: |
               yarn build --cargo-flags="--no-default-features" --target armv7-unknown-linux-gnueabihf
               arm-linux-gnueabihf-strip *.node
