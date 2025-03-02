@@ -39,7 +39,78 @@ jobs:
               apt-get install -y protobuf-compiler &&
               yarn build --target x86_64-unknown-linux-gnu &&
               strip *.node
+              
 
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: |-
+              set -e &&
+              apk add --no-cache protobuf &&
+              yarn build --cargo-flags="--no-default-features" &&
+              strip *.node
+
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: |-
+              brew install protobuf &&
+              yarn build --target aarch64-apple-darwin &&
+              strip -x *.node
+    
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            setup: |
+              sudo apt-get update
+              sudo apt-get install -y protobuf-compiler
+            build: |-
+              set -e &&
+              yarn build --cargo-flags="--no-default-features" --target aarch64-unknown-linux-gnu &&
+              aarch64-unknown-linux-gnu-strip *.node
+          
+          - host: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-arm-linux-gnueabihf -y
+              sudo apt-get install -y protobuf-compiler
+            build: |
+              yarn build --cargo-flags="--no-default-features" --target armv7-unknown-linux-gnueabihf
+              arm-linux-gnueabihf-strip *.node
+                    
+          - host: ubuntu-latest
+            target: aarch64-linux-android
+            setup: |
+              sudo apt-get update
+              sudo apt-get install -y protobuf-compiler
+            build: |
+              yarn build --cargo-flags="--no-default-features" --target aarch64-linux-android
+              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
+          
+          - host: ubuntu-latest
+            target: armv7-linux-androideabi
+            setup: |
+              sudo apt-get update
+              sudo apt-get install -y protobuf-compiler
+            build: |
+              yarn build --cargo-flags="--no-default-features" --target armv7-linux-androideabi
+              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
+          
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: |-
+              set -e &&
+              apk add --no-cache protobuf &&
+              rustup target add aarch64-unknown-linux-musl &&
+              yarn build --cargo-flags="--no-default-features" --target aarch64-unknown-linux-musl &&
+              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+                    
+          - host: windows-latest
+            target: aarch64-pc-windows-msvc
+            setup: |
+              choco install protobuf
+            build: yarn build --target aarch64-pc-windows-msvc
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
     steps:
