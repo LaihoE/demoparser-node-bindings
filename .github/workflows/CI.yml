@@ -100,8 +100,9 @@ jobs:
           - host: windows-latest
             target: aarch64-pc-windows-msvc
             setup: |
-              choco install protobuf
+              choco install protoc
             build: yarn build --target aarch64-pc-windows-msvc
+            
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
     steps:

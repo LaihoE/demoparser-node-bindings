@@ -18,6 +18,7 @@ use parser::second_pass::variants::soa_to_aos;
 use parser::second_pass::variants::BytesVariant;
 use parser::second_pass::variants::OutputSerdeHelperStruct;
 use parser::second_pass::variants::Variant;
+#[cfg(feature = "voice")]
 use parser::second_pass::voice_data::convert_voice_data_to_wav;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -139,16 +140,16 @@ fn parse_demo(bytes: BytesVariant, parser: &mut Parser) -> Result<DemoOutput, Er
     },
   }
 }
+#[cfg(feature = "voice")]
 #[napi]
-pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<String, Vec<u8>>> {
-  let bytes = resolve_byte_type(path_or_buf).unwrap();
+pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<String, Buffer>> {
+  let bytes = resolve_byte_type(path_or_buf)?;
   let settings = ParserInputs {
     wanted_players: vec![],
     wanted_player_props: vec![],
     wanted_other_props: vec![],
     wanted_events: vec![],
     wanted_ticks: vec![],
-    wanted_prop_states: AHashMap::default(),
     real_name_to_og_name: AHashMap::default(),
     parse_ents: false,
     parse_projectiles: false,
@@ -157,6 +158,7 @@ pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<
     only_convars: false,
     huffman_lookup_table: &vec![],
     order_by_steamid: false,
+    wanted_prop_states: AHashMap::default(),
   };
   let mut parser = Parser::new(settings, parser::parse_demo::ParsingMode::Normal);
   let output = parse_demo(bytes, &mut parser)?;
@@ -166,7 +168,7 @@ pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<
   };
   let mut out_hm = HashMap::default();
   for (steamid, bytes) in out {
-    out_hm.insert(steamid, bytes);
+    out_hm.insert(steamid, bytes.into());
   }
   Ok(out_hm)
 }
@@ -571,6 +573,7 @@ pub fn parse_player_skins(path_or_buf: Either<String, Buffer>) -> napi::Result<V
   };
   Ok(s)
 }
+
 #[napi]
 pub fn list_updated_fields(path_or_buf: Either<String, Buffer>) -> napi::Result<Value> {
   let bytes = resolve_byte_type(path_or_buf)?;
