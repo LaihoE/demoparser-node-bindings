@@ -18,7 +18,6 @@ use parser::second_pass::variants::soa_to_aos;
 use parser::second_pass::variants::BytesVariant;
 use parser::second_pass::variants::OutputSerdeHelperStruct;
 use parser::second_pass::variants::Variant;
-#[cfg(feature = "voice")]
 use parser::second_pass::voice_data::convert_voice_data_to_wav;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -140,25 +139,24 @@ fn parse_demo(bytes: BytesVariant, parser: &mut Parser) -> Result<DemoOutput, Er
     },
   }
 }
-#[cfg(feature = "voice")]
 #[napi]
-pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<String, Buffer>> {
-  let bytes = resolve_byte_type(path_or_buf)?;
+pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<String, Vec<u8>>> {
+  let bytes = resolve_byte_type(path_or_buf).unwrap();
   let settings = ParserInputs {
     wanted_players: vec![],
     wanted_player_props: vec![],
     wanted_other_props: vec![],
     wanted_events: vec![],
     wanted_ticks: vec![],
+    wanted_prop_states: AHashMap::default(),
     real_name_to_og_name: AHashMap::default(),
     parse_ents: false,
     parse_projectiles: false,
     only_header: false,
-    count_props: false,
+    list_props: false,
     only_convars: false,
     huffman_lookup_table: &vec![],
     order_by_steamid: false,
-    wanted_prop_states: AHashMap::default(),
   };
   let mut parser = Parser::new(settings, parser::parse_demo::ParsingMode::Normal);
   let output = parse_demo(bytes, &mut parser)?;
@@ -168,7 +166,7 @@ pub fn parse_voice(path_or_buf: Either<String, Buffer>) -> napi::Result<HashMap<
   };
   let mut out_hm = HashMap::default();
   for (steamid, bytes) in out {
-    out_hm.insert(steamid, bytes.into());
+    out_hm.insert(steamid, bytes);
   }
   Ok(out_hm)
 }
@@ -189,7 +187,7 @@ pub fn list_game_events(path_or_buf: Either<String, Buffer>) -> napi::Result<Val
     wanted_ticks: vec![],
     parse_projectiles: false,
     only_header: false,
-    count_props: false,
+    list_props: false,
     only_convars: false,
     huffman_lookup_table: &huf,
     order_by_steamid: false,
@@ -221,7 +219,7 @@ pub fn parse_grenades(path_or_buf: Either<String, Buffer>) -> napi::Result<Value
     wanted_ticks: vec![],
     parse_projectiles: true,
     only_header: true,
-    count_props: false,
+    list_props: false,
     only_convars: false,
     huffman_lookup_table: &huf,
     order_by_steamid: false,
@@ -251,7 +249,7 @@ pub fn parse_header(path_or_buf: Either<String, Buffer>) -> napi::Result<Value> 
     wanted_ticks: vec![],
     parse_projectiles: false,
     only_header: true,
-    count_props: false,
+    list_props: false,
     only_convars: false,
     huffman_lookup_table: &huf,
     order_by_steamid: false,
@@ -316,7 +314,7 @@ pub fn parse_event(
     wanted_ticks: vec![],
     parse_projectiles: false,
     only_header: true,
-    count_props: false,
+    list_props: false,
     only_convars: false,
     huffman_lookup_table: &huf,
     order_by_steamid: false,
@@ -379,7 +377,7 @@ pub fn parse_events(
     wanted_ticks: vec![],
     parse_projectiles: false,
     only_header: true,
-    count_props: false,
+    list_props: false,
     only_convars: false,
     huffman_lookup_table: &huf,
     order_by_steamid: false,
@@ -457,7 +455,7 @@ pub fn parse_ticks(
     wanted_ticks: wanted_ticks,
     parse_projectiles: false,
     only_header: false,
-    count_props: false,
+    list_props: false,
     only_convars: false,
     huffman_lookup_table: &huf,
     order_by_steamid: order_by_steamid,
@@ -530,7 +528,7 @@ pub fn parse_player_info(path_or_buf: Either<String, Buffer>) -> napi::Result<Va
     wanted_ticks: vec![],
     parse_projectiles: false,
     only_header: true,
-    count_props: false,
+    list_props: false,
     only_convars: false,
     huffman_lookup_table: &huf,
     order_by_steamid: false,
@@ -560,7 +558,7 @@ pub fn parse_player_skins(path_or_buf: Either<String, Buffer>) -> napi::Result<V
     wanted_ticks: vec![],
     parse_projectiles: false,
     only_header: true,
-    count_props: false,
+    list_props: false,
     only_convars: false,
     huffman_lookup_table: &huf,
     order_by_steamid: false,
@@ -568,6 +566,35 @@ pub fn parse_player_skins(path_or_buf: Either<String, Buffer>) -> napi::Result<V
   let mut parser = Parser::new(settings, parser::parse_demo::ParsingMode::Normal);
   let output = parse_demo(bytes, &mut parser)?;
   let s = match serde_json::to_value(&output.skins) {
+    Ok(s) => s,
+    Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
+  };
+  Ok(s)
+}
+#[napi]
+pub fn list_updated_fields(path_or_buf: Either<String, Buffer>) -> napi::Result<Value> {
+  let bytes = resolve_byte_type(path_or_buf)?;
+  let huf = create_huffman_lookup_table();
+
+  let settings = ParserInputs {
+    wanted_players: vec![],
+    real_name_to_og_name: AHashMap::default(),
+    wanted_player_props: vec![],
+    wanted_other_props: vec![],
+    wanted_prop_states: AHashMap::default(),
+    wanted_events: vec!["none".to_string()],
+    parse_ents: true,
+    wanted_ticks: vec![],
+    parse_projectiles: false,
+    only_header: false,
+    list_props: true,
+    only_convars: false,
+    huffman_lookup_table: &huf,
+    order_by_steamid: false,
+  };
+  let mut parser = Parser::new(settings, parser::parse_demo::ParsingMode::Normal);
+  let output = parse_demo(bytes, &mut parser)?;
+  let s = match serde_json::to_value(&output.uniq_prop_names) {
     Ok(s) => s,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   };
