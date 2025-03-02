@@ -40,31 +40,22 @@ jobs:
               yarn build --target x86_64-unknown-linux-gnu &&
               strip *.node
               
-
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
               set -e &&
-              apk add --no-cache protobuf &&
+              apk add --no-cache protobuf-dev &&
               yarn build --cargo-flags="--no-default-features" &&
               strip *.node
-
-          - host: macos-latest
-            target: aarch64-apple-darwin
-            build: |-
-              brew install protobuf &&
-              yarn build --target aarch64-apple-darwin &&
-              strip -x *.node
     
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            setup: |
-              sudo apt-get update
-              sudo apt-get install -y protobuf-compiler
             build: |-
               set -e &&
+              sudo apt-get update &&
+              sudo apt-get install -y protobuf-compiler &&
               yarn build --cargo-flags="--no-default-features" --target aarch64-unknown-linux-gnu &&
               aarch64-unknown-linux-gnu-strip *.node
           
