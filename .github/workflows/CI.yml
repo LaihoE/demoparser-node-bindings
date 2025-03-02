@@ -92,7 +92,7 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
               set -e &&
-              apk add --no-cache protobuf &&
+              apk add --no-cache protobuf-dev &&
               rustup target add aarch64-unknown-linux-musl &&
               yarn build --cargo-flags="--no-default-features" --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
@@ -102,7 +102,7 @@ jobs:
             setup: |
               choco install protoc
             build: yarn build --target aarch64-pc-windows-msvc
-            
+
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
     steps:
