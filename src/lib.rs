@@ -59,11 +59,11 @@ impl FromNapiValue for JsVariant {
             let num = val.get_double()?;
             if num.fract() == 0.0 {
               if num >= u8::MIN as f64 && num <= u8::MAX as f64 {
-                Ok(JsVariant(Variant::U8(num as u8)))
+                Ok(JsVariant(Variant::I32(num as i32)))
               } else if let Ok(val) = val.get_int32() {
                 let int32_val = val;
                 if int32_val >= i16::MIN as i32 && int32_val <= i16::MAX as i32 {
-                  Ok(JsVariant(Variant::I16(int32_val as i16)))
+                  Ok(JsVariant(Variant::I32(int32_val)))
                 } else {
                   Ok(JsVariant(Variant::I32(int32_val)))
                 }
