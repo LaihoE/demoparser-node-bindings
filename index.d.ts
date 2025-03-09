@@ -5,7 +5,7 @@
 
 export function parseVoice(pathOrBuf: string | Buffer): Record<string, Buffer>
 export function listGameEvents(pathOrBuf: string | Buffer): any
-export function parseGrenades(pathOrBuf: string | Buffer): any
+export function parseGrenades(pathOrBuf: string | Buffer, extra?: Array<string> | undefined | null): any
 export function parseHeader(pathOrBuf: string | Buffer): any
 export function parseEvent(pathOrBuf: string | Buffer, eventName: string, playerExtra?: Array<string> | undefined | null, otherExtra?: Array<string> | undefined | null): any
 export function parseEvents(pathOrBuf: string | Buffer, eventNames?: Array<string> | undefined | null, playerExtra?: Array<string> | undefined | null, otherExtra?: Array<string> | undefined | null): any
