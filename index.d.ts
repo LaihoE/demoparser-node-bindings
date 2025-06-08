@@ -5,7 +5,11 @@
 
 export function parseVoice(pathOrBuf: string | Buffer): Record<string, Buffer>
 export function listGameEvents(pathOrBuf: string | Buffer): any
-export function parseGrenades(pathOrBuf: string | Buffer, extra?: Array<string> | undefined | null): any
+/**
+ * extra: lets you add new fields to grenades. Use list_updated_fields for a full list.
+ * grenades: lets you disable non-projectile grenades. This can have a big difference on memory/speed.
+ */
+export function parseGrenades(pathOrBuf: string | Buffer, extra?: Array<string> | undefined | null, grenades?: boolean | undefined | null): any
 export function parseHeader(pathOrBuf: string | Buffer): any
 export function parseEvent(pathOrBuf: string | Buffer, eventName: string, playerExtra?: Array<string> | undefined | null, otherExtra?: Array<string> | undefined | null, gameEventListBytes?: Buffer | undefined | null): any
 export function parseEvents(pathOrBuf: string | Buffer, eventNames?: Array<string> | undefined | null, playerExtra?: Array<string> | undefined | null, otherExtra?: Array<string> | undefined | null, gameEventListBytes?: Buffer | undefined | null): any
