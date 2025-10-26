@@ -29,7 +29,3 @@ path = "demoparser/src/parser"
 [dependencies.csgoproto]
 path = "demoparser/src/csgoproto"
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-
-[features]
-default = ["parser/voice", "voice"]
-voice = []
