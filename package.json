@@ -19,7 +19,8 @@
         "armv7-linux-androideabi",
         "universal-apple-darwin"
       ]
-    }
+    },
+    "release": false
   },
   "license": "MIT",
   "devDependencies": {
