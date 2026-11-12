@@ -41,5 +41,9 @@
     "test": "ava",
     "universal": "napi universal",
     "version": "napi version"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LaihoE/demoparser-node-bindings.git"
   }
 }
