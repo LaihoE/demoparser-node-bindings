@@ -22,14 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-latest
-            target: x86_64-apple-darwin
-            build: |
-              yarn build
-              strip -x *.node
-          - host: windows-latest
-            build: yarn build --cargo-flags="--no-default-features"
-            target: x86_64-pc-windows-msvc
+          # TEMP: only one target while testing npm trusted publishing. Restore full matrix from git history.
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
@@ -39,64 +32,6 @@ jobs:
               apt-get install -y protobuf-compiler &&
               yarn build --target x86_64-unknown-linux-gnu &&
               strip *.node
-          - host: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: |-
-              set -e &&
-              apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.18/main protoc=3.21.12-r2 &&
-              protoc --version &&
-              yarn build --cargo-flags="--no-default-features" &&
-              strip *.node
-          - host: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            build: |-
-              set -e &&
-              sudo apt-get update &&
-              sudo apt-get install -y protobuf-compiler &&
-              yarn build --cargo-flags="--no-default-features" --target aarch64-unknown-linux-gnu &&
-              aarch64-unknown-linux-gnu-strip *.node
-          - host: ubuntu-latest
-            target: armv7-unknown-linux-gnueabihf
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-arm-linux-gnueabihf -y
-              sudo apt-get install -y protobuf-compiler
-            build: |
-              yarn build --cargo-flags="--no-default-features" --target armv7-unknown-linux-gnueabihf
-              arm-linux-gnueabihf-strip *.node
-                    
-          - host: ubuntu-latest
-            target: aarch64-linux-android
-            setup: |
-              sudo apt-get update
-              sudo apt-get install -y protobuf-compiler
-            build: |
-              yarn build --cargo-flags="--no-default-features" --target aarch64-linux-android
-              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
-          - host: ubuntu-latest
-            target: armv7-linux-androideabi
-            setup: |
-              sudo apt-get update
-              sudo apt-get install -y protobuf-compiler
-            build: |
-              yarn build --cargo-flags="--no-default-features" --target armv7-linux-androideabi
-              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
-          - host: ubuntu-latest
-            target: aarch64-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: |-
-              set -e &&
-              apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.18/main protoc=3.21.12-r2 &&
-              protoc --version &&
-              rustup target add aarch64-unknown-linux-musl &&
-              yarn build --cargo-flags="--no-default-features" --target aarch64-unknown-linux-musl &&
-              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
-                    
-          - host: windows-latest
-            target: aarch64-pc-windows-msvc
-            build: yarn build --target aarch64-pc-windows-msvc
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
     steps:
@@ -208,7 +143,8 @@ jobs:
         run: ls -R ./npm
         shell: bash
       - name: Publish
-        run: npm publish --access public
+        # TEMP: publish only the linux-x64-gnu package, not the main package
+        run: cd npm/linux-x64-gnu && npm publish --access public
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_LOGLEVEL: verbose # shows why OIDC auth fails, if it does
