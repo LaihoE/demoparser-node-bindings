@@ -24,14 +24,10 @@ jobs:
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
-            setup: |
-              brew install protobuf
             build: |
               yarn build
               strip -x *.node
           - host: windows-latest
-            setup: |
-              choco install protoc
             build: yarn build --cargo-flags="--no-default-features"
             target: x86_64-pc-windows-msvc
           - host: ubuntu-latest
@@ -98,8 +94,6 @@ jobs:
                     
           - host: windows-latest
             target: aarch64-pc-windows-msvc
-            setup: |
-              choco install protoc
             build: yarn build --target aarch64-pc-windows-msvc
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
@@ -136,6 +130,13 @@ jobs:
         if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
         with:
           version: 0.10.1
+      - name: Install protoc
+        # Pinned: protoc >= 24 rejects Valve's bundled descriptor.proto (FieldOptions 20/21 clash with edition_defaults/features)
+        uses: arduino/setup-protoc@v3
+        if: ${{ matrix.settings.host != 'ubuntu-latest' }}
+        with:
+          version: '23.4'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
