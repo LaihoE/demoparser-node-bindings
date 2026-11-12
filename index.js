@@ -28,7 +28,6 @@ function isMusl() {
   }
 }
 
-
 switch (platform) {
   case 'android':
     switch (arch) {
@@ -253,13 +252,13 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { JsVariant, WantedPropState, parseVoice, listGameEvents, parseGrenades, parseHeader, parseEvent, parseEvents, parseTicks, parsePlayerInfo, parsePlayerSkins, listUpdatedFields } = nativeBinding
+const { JsVariant, WantedPropState, listGameEvents, parseGrenades, parseWeapons, parseHeader, parseEvent, parseEvents, parseTicks, parsePlayerInfo, parsePlayerSkins, listUpdatedFields } = nativeBinding
 
 module.exports.JsVariant = JsVariant
 module.exports.WantedPropState = WantedPropState
-module.exports.parseVoice = parseVoice
 module.exports.listGameEvents = listGameEvents
 module.exports.parseGrenades = parseGrenades
+module.exports.parseWeapons = parseWeapons
 module.exports.parseHeader = parseHeader
 module.exports.parseEvent = parseEvent
 module.exports.parseEvents = parseEvents
