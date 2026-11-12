@@ -44,7 +44,8 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
               set -e &&
-              apk add --no-cache protobuf-dev &&
+              apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.18/main protoc=3.21.12-r2 &&
+              protoc --version &&
               yarn build --cargo-flags="--no-default-features" &&
               strip *.node
           - host: ubuntu-latest
@@ -87,7 +88,8 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
               set -e &&
-              apk add --no-cache protobuf-dev &&
+              apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.18/main protoc=3.21.12-r2 &&
+              protoc --version &&
               rustup target add aarch64-unknown-linux-musl &&
               yarn build --cargo-flags="--no-default-features" --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
@@ -131,11 +133,11 @@ jobs:
         with:
           version: 0.10.1
       - name: Install protoc
-        # Pinned: protoc >= 24 rejects Valve's bundled descriptor.proto (FieldOptions 20/21 clash with edition_defaults/features)
+        # Pinned to the same protoc the passing Debian docker jobs use (3.21.12); newer protoc chokes on Valve's bundled descriptor.proto
         uses: arduino/setup-protoc@v3
         if: ${{ matrix.settings.host != 'ubuntu-latest' }}
         with:
-          version: '23.4'
+          version: '21.12'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
