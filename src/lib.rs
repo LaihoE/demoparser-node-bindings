@@ -290,6 +290,7 @@ pub fn parse_weapons(
     Some(p) => p,
     None => vec![],
   };
+
   let real_extra_props = match rm_user_friendly_names(&extra_props) {
     Ok(names) => names,
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
