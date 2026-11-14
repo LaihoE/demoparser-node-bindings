@@ -277,7 +277,6 @@ pub fn parse_grenades(
     Err(e) => return Err(Error::new(Status::InvalidArg, format!("{}", e).to_owned())),
   }
 }
-
 #[napi]
 pub fn parse_weapons(
   path_or_buf: Either<String, Buffer>,
