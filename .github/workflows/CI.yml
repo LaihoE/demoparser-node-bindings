@@ -192,6 +192,19 @@ jobs:
           path: artifacts
       - name: Move artifacts
         run: yarn artifacts
+      - name: Skip platform packages already on npm
+        # napi prepublish skips any platform whose .node file is missing,
+        # so removing it makes re-running a partially failed publish safe.
+        run: |
+          version=$(node -p "require('./package.json').version")
+          for dir in npm/*/; do
+            name=$(node -p "require('./${dir}package.json').name")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version already published, skipping"
+              rm -f "$dir"*.node
+            fi
+          done
+        shell: bash
       - name: List packages
         run: ls -R ./npm
         shell: bash
